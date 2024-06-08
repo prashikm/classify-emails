@@ -1,6 +1,6 @@
 export function extractSenderName(message: any) {
   const fromHeader = message.payload.headers.find(
-    (header) => header.name.toLowerCase() === "from"
+    (header: any) => header.name.toLowerCase() === "from"
   );
 
   if (fromHeader) {

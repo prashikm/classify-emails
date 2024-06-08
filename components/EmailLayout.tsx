@@ -42,7 +42,10 @@ export default function EmailLayout() {
     try {
       const mails = await getMails(limit);
       localStorage.setItem("mails", JSON.stringify(mails));
-      setMails(mails);
+
+      if (typeof mails !== "undefined") {
+        setMails(mails);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -65,9 +68,12 @@ export default function EmailLayout() {
 
     try {
       const classifiedMails = await classifyMails(apiKey, mails);
-      console.log(classifiedMails);
+
       localStorage.setItem("mails", JSON.stringify(classifiedMails));
-      setMails(classifiedMails);
+
+      if (typeof classifiedMails !== "undefined") {
+        setMails(classifiedMails);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {

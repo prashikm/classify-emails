@@ -86,8 +86,8 @@ async function fetchMails(
 
 export async function classifyMails(
   GEMINI_API_KEY: string,
-  mails: { id: string; body: string; sender: string; tag: string | null }[]
-) {
+  mails: Mail[]
+): Promise<Mail[]> {
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY is not set");
   }
@@ -100,7 +100,7 @@ export async function classifyMails(
     apiKey: GEMINI_API_KEY,
   });
 
-  const classifiedMails = [];
+  const classifiedMails: Mail[] = [];
 
   for (const mail of mails) {
     const cleanText = mail.body.replace(/\s+/g, " ").trim();
