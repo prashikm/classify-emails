@@ -6,38 +6,48 @@ import { generateText } from "ai";
 import { getPlainTextBody } from "@/lib/helpers/get-plain-text-body";
 import { extractSenderName } from "@/lib/helpers/extract-sender-name";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { Session } from "next-auth";
 
-export async function getMails(limit: number) {
-  if (!limit) {
-    throw new Error("days is not set");
-  }
+interface UserSession extends Session {
+  accessToken: string;
+}
 
-  if (limit > 14) {
-    throw new Error("days must be less than 14");
+interface Mail {
+  id: string;
+  body: string;
+  sender: string;
+  snippet: string;
+  tag: string | null;
+}
+
+export async function getMails(limit: number): Promise<Mail[]> {
+  if (!limit || limit < 1 || limit > 14) {
+    throw new Error("Invalid limit: limit must be between 1 and 14");
   }
 
   const session = await auth();
 
-  if (!session?.user) {
+  if (!session || !session.user) {
     throw new Error("Unauthorized");
   }
 
-  try {
-    const googleAuth = new google.auth.OAuth2();
-    googleAuth.setCredentials({ access_token: session.accessToken });
-    const gmail = google.gmail({ version: "v1", auth: googleAuth });
+  const googleAuth = new google.auth.OAuth2();
+  googleAuth.setCredentials({
+    access_token: (session as UserSession).accessToken,
+  });
+  const gmail = google.gmail({ version: "v1", auth: googleAuth });
 
+  try {
     const response = await gmail.users.messages.list({
       userId: "me",
       maxResults: limit,
     });
 
-    if (response.statusText === "OK") {
-      const mails = fetchMails(gmail, response.data);
-      return mails;
-    } else {
-      throw new Error("Error getting mails");
+    if (!response.data.messages) {
+      return [];
     }
+
+    const mails = fetchMails(gmail, response.data);
   } catch (error) {
     throw new Error("Error getting mails");
   }
@@ -46,27 +56,28 @@ export async function getMails(limit: number) {
 async function fetchMails(
   gmail: gmail_v1.Gmail,
   data: gmail_v1.Schema$ListMessagesResponse
-) {
+): Promise<Mail[]> {
   if (!data.messages) {
     throw new Error("messages is not set");
   }
 
-  let mails = [];
+  let mails: Mail[] = [];
 
   for (const message of data.messages) {
     const mail = await gmail.users.messages.get({
-      userId: "me",
-      id: message.id,
+      userId: "me" as string,
+      id: message.id!,
     });
 
     const plainTextBody = getPlainTextBody(mail.data);
     const senderName = extractSenderName(mail.data);
 
     mails.push({
-      id: message.id,
+      id: message.id!,
       body: plainTextBody,
       sender: senderName,
-      snippet: mail.data.snippet,
+      snippet: mail.data.snippet!,
+      tag: null,
     });
   }
 

@@ -14,13 +14,21 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { classifyMails, getMails } from "@/app/(home)/emails/action";
 
+interface Mail {
+  id: string;
+  sender: string;
+  snippet: string;
+  body: string;
+  tag: string | null;
+}
+
 export default function EmailLayout() {
   const [isClassifying, setIsClassifying] = useState(false);
   const [isMailFetching, setIsMailFetching] = useState(false);
-  const [mails, setMails] = useState([]);
+  const [mails, setMails] = useState<Mail[]>([]);
 
   useEffect(() => {
-    const mails = JSON.parse(localStorage.getItem("mails"));
+    const mails = JSON.parse(localStorage.getItem("mails") ?? "[]");
     setMails(mails);
   }, []);
 
@@ -35,7 +43,7 @@ export default function EmailLayout() {
       const mails = await getMails(limit);
       localStorage.setItem("mails", JSON.stringify(mails));
       setMails(mails);
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message);
     } finally {
       setIsMailFetching(false);
@@ -60,7 +68,7 @@ export default function EmailLayout() {
       console.log(classifiedMails);
       localStorage.setItem("mails", JSON.stringify(classifiedMails));
       setMails(classifiedMails);
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message);
     } finally {
       setIsClassifying(false);
@@ -108,7 +116,7 @@ export default function EmailLayout() {
           <>
             {mails.map((mail, index) => (
               <EmailCard
-                key={index}
+                key={mail.id}
                 id={mail.id}
                 sender={mail.sender}
                 snippet={mail.snippet}

@@ -16,7 +16,6 @@ export default function EmailCard({
   id: string;
   sender: string;
   snippet: string;
-  body: string;
   tag: string | null;
 }) {
   return (
