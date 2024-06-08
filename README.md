@@ -1,6 +1,6 @@
 # ClassifyEmails
 
-App to classify email addresses into categories.
+App to classify emails into categories.
 
 ## Tech Stack
 
