@@ -20,7 +20,7 @@ interface Mail {
   tag: string | null;
 }
 
-export async function getMails(limit: number): Promise<Mail[]> {
+export async function getMails(limit: number) {
   if (!limit || limit < 1 || limit > 14) {
     throw new Error("Invalid limit: limit must be between 1 and 14");
   }

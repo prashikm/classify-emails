@@ -19,17 +19,18 @@ export default async function HomeLayout({
 }>) {
   const session = await auth();
 
-  if (!session?.user) {
+  if (!session || !session.user) {
     return redirect("/");
   }
+
   return (
     <main className="max-w-2xl mx-auto mt-14 mb-32 px-4">
       <section className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
             <img
-              src={session.user.image}
-              alt={session.user.name}
+              src={session.user.image!}
+              alt={session.user.name || ""}
               className="h-12 w-12 rounded-full object-cover"
             />
           </div>
