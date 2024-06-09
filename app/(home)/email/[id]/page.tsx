@@ -28,7 +28,9 @@ export default function Email({ params }: { params: { id: string } }) {
     <div className="max-w-lg mx-auto mt-10">
       <h1 className="text-2xl font-semibold">{mail.sender}</h1>
       {getClass(mail.tag)}
-      <p className="mt-4">{mail.body}</p>
+      <p className="mt-4" style={{ whiteSpace: "pre-line" }}>
+        {mail.body}
+      </p>
     </div>
   );
 }

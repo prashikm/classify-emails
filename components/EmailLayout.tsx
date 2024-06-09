@@ -91,12 +91,12 @@ export default function EmailLayout() {
         <div>
           <Select onValueChange={(value) => fetchMails(parseInt(value))}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Emails" />
+              <SelectValue placeholder="Email Range" />
             </SelectTrigger>
             <SelectContent className="w-[140px]">
-              <SelectItem value="3">last 3 emails</SelectItem>
-              <SelectItem value="7">last 7 emails</SelectItem>
-              <SelectItem value="14">last 14 emails</SelectItem>
+              <SelectItem value="3">Last 3 emails</SelectItem>
+              <SelectItem value="7">Last 7 emails</SelectItem>
+              <SelectItem value="9">Last 9 emails</SelectItem>
             </SelectContent>
           </Select>
         </div>
