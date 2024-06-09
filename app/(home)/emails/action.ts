@@ -2,11 +2,10 @@
 
 import { gmail_v1, google } from "googleapis";
 import { auth } from "@/auth";
-import { generateText } from "ai";
 import { getPlainTextBody } from "@/lib/helpers/get-plain-text-body";
 import { extractSenderName } from "@/lib/helpers/extract-sender-name";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { Session } from "next-auth";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
 interface UserSession extends Session {
   accessToken: string;
@@ -97,36 +96,39 @@ export async function classifyMails(
     throw new Error("mails is not set");
   }
 
-  const google = createGoogleGenerativeAI({
+  const model = new ChatGoogleGenerativeAI({
     apiKey: GEMINI_API_KEY,
+    model: "gemini-1.5-flash-latest",
+    maxOutputTokens: 64,
   });
+
+  const instructions = `Email Classification Instructions:
+  1. Important: Emails that are personal or work-related and require immediate attention.
+  2. Promotions: Emails related to sales, discounts, and marketing campaigns.
+  3. Social: Emails from social networks, friends, and family.
+  4. Marketing: Emails related to marketing, newsletters, and notifications.
+  5. Spam: Unwanted or unsolicited emails.
+  6. General: If none of the above categories are matched, classify the email as General.
+
+  Classes: ['important', 'promotions', 'social', 'marketing', 'spam', 'general']
+
+  Task: Classify the given email text into one of the above classes. Return only the class name.
+  `;
+
+  const batchMails = [];
+  for (const mail of mails) {
+    const cleanText = mail.body.replace(/\s+/g, " ").trim();
+    batchMails.push(`${instructions}\nText: ${cleanText}`);
+  }
+  const batch = await model.batch(batchMails);
 
   const classifiedMails: Mail[] = [];
 
-  for (const mail of mails) {
-    const cleanText = mail.body.replace(/\s+/g, " ").trim();
-
-    const { text } = await generateText({
-      model: google("models/gemini-1.5-flash-latest"),
-      system: `Email Classification Instructions:
-    1. Important: Emails that are personal or work-related and require immediate attention.
-    2. Promotions: Emails related to sales, discounts, and marketing campaigns.
-    3. Social: Emails from social networks, friends, and family.
-    4. Marketing: Emails related to marketing, newsletters, and notifications.
-    5. Spam: Unwanted or unsolicited emails.
-    6. General: If none of the above categories are matched, classify the email as General.
-
-    Classes: ['important', 'promotions', 'social', 'marketing', 'spam', 'general']
-
-    Task: Classify the given email text into one of the above classes. Return only the class name.
-    `,
-      prompt: `Text: ${cleanText}`,
-      maxTokens: 64,
-    });
-
+  for (let i = 0; i < batch.length; i++) {
+    const res = batch[i];
     classifiedMails.push({
-      ...mail,
-      tag: text.trim(),
+      ...mails[i],
+      tag: (res.content as string).trim(),
     });
   }
 

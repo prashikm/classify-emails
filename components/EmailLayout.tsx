@@ -68,7 +68,6 @@ export default function EmailLayout() {
 
     try {
       const classifiedMails = await classifyMails(apiKey, mails);
-
       localStorage.setItem("mails", JSON.stringify(classifiedMails));
 
       if (typeof classifiedMails !== "undefined") {
