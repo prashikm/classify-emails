@@ -114,7 +114,7 @@ export default function EmailLayout() {
           isMailFetching ? (
             <p>Fetching mails...</p>
           ) : (
-            <p>No mails found</p>
+            <p>No mails to classify</p>
           )
         ) : null}
 
